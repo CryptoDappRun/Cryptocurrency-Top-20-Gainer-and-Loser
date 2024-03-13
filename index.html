@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptocurrency Top 20 Gainer and Loser</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .gainer {
+            color: green;
+        }
+        .loser {
+            color: red;
+        }
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .list-group-item span {
+            flex-grow: 1;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4">Crypto Top Gainer and Loser</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Top 20 Gainers</h2>
+                        <ul class="list-group" id="topGainers">
+                            <li class="list-group-item">Loading...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Top 20 Losers</h2>
+                        <ul class="list-group" id="topLosers">
+                            <li class="list-group-item">Loading...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        async function getCryptoData() {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=40&page=1&sparkline=false');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        async function updateCryptoTracker() {
+            const cryptoData = await getCryptoData();
+
+            // Sort data by price change percentage
+            cryptoData.sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+
+            // Display top 20 gainers
+            const topGainersContainer = document.getElementById('topGainers');
+            topGainersContainer.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const crypto = cryptoData[i];
+                const listItem = document.createElement('li');
+                listItem.classList.add('list-group-item');
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = `${crypto.name} (${crypto.symbol}):`;
+                listItem.appendChild(nameSpan);
+                const percentageSpan = document.createElement('span');
+                percentageSpan.textContent = `${crypto.price_change_percentage_24h.toFixed(2)}%`;
+                if (crypto.price_change_percentage_24h > 0) {
+                    percentageSpan.classList.add('gainer');
+                } else {
+                    percentageSpan.classList.add('loser');
+                }
+                listItem.appendChild(percentageSpan);
+                topGainersContainer.appendChild(listItem);
+            }
+
+            // Display top 20 losers
+            const topLosersContainer = document.getElementById('topLosers');
+            topLosersContainer.innerHTML = '';
+            for (let i = cryptoData.length - 1; i >= cryptoData.length - 20; i--) {
+                const crypto = cryptoData[i];
+                const listItem = document.createElement('li');
+                listItem.classList.add('list-group-item');
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = `${crypto.name} (${crypto.symbol}):`;
+                listItem.appendChild(nameSpan);
+                const percentageSpan = document.createElement('span');
+                percentageSpan.textContent = `${crypto.price_change_percentage_24h.toFixed(2)}%`;
+                if (crypto.price_change_percentage_24h > 0) {
+                    percentageSpan.classList.add('gainer');
+                } else {
+                    percentageSpan.classList.add('loser');
+                }
+                listItem.appendChild(percentageSpan);
+                topLosersContainer.appendChild(listItem);
+            }
+        }
+
+        // Update tracker every 5 minutes
+        setInterval(updateCryptoTracker, 5 * 60 * 1000);
+
+        // Initial update
+        updateCryptoTracker();
+    </script>
+</body>
+</html>
